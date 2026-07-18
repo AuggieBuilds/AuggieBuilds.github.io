@@ -27,6 +27,6 @@ Use `src/pages/` for a page built with Astro components, or keep a custom experi
 
 ## Deploy to GitHub Pages
 
-The site deploys automatically to <https://amoney-letitrip.github.io/> whenever a commit is pushed to `main`. The deployment workflow lives in `.github/workflows/deploy.yml`.
+The site deploys automatically to <https://auggiebuilds.github.io/> whenever a commit is pushed to `main`. The deployment workflow lives in `.github/workflows/deploy.yml`.
 
 Before connecting a custom domain, update the default author name, About copy, social links, and contact details to the exact information you want public.
