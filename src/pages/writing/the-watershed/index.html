@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <html data-theme="paper" data-version="3.0" lang="en">
-<head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="The Watershed — a visual essay about how cities convert temporary capital flows into durable institutions and successor industries." name="description"/><meta content="#111613" name="theme-color"/><meta content="The Watershed" property="og:title"/><meta content="How Money Moves, and What a City Must Build While It Is Still Flowing" property="og:description"/><meta content="article" property="og:type"/><meta content="assets/social-card.svg" property="og:image"/><title>The Watershed — Visual Edition 3.0</title><link href="assets/favicon.svg" rel="icon" type="image/svg+xml"/><link href="site.webmanifest" rel="manifest"/><link href="styles.css" rel="stylesheet"/><script defer="" src="script.js"></script></head>
+<head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="The Watershed — a visual essay about how cities convert temporary capital flows into durable institutions and successor industries." name="description"/><meta content="#111613" name="theme-color"/><meta content="The Watershed" property="og:title"/><meta content="How Money Moves, and What a City Must Build While It Is Still Flowing" property="og:description"/><meta content="article" property="og:type"/><meta content="assets/social-card.svg" property="og:image"/><title>The Watershed — Visual Edition 3.0</title><link href="assets/favicon.svg" rel="icon" type="image/svg+xml"/><link href="site.webmanifest" rel="manifest"/><link href="styles.css" rel="stylesheet"/><script defer="" src="city-capacity-data.js"></script><script defer="" src="script.js"></script></head>
 <body id="top">
 <div class="progress"><i id="progressBar"></i></div>
 <header class="site-header" id="siteHeader"><a aria-label="Back to Austin Woyshnar’s portfolio" class="wordmark" href="/"><svg aria-hidden="true" viewbox="0 0 44 28"><path d="M2 4c8 0 8 8 16 8s8-8 16-8 8 8 8 8M2 14c8 0 8 8 16 8s8-8 16-8 8 8 8 8"></path></svg><span>The Watershed</span></a><div class="header-center"><span id="activeAct">Introduction</span><b id="activeSection"></b></div><div class="header-actions"><button aria-label="Toggle theme" id="themeToggle">◐</button><button class="toc-button" id="tocOpen">Contents <span>16</span></button></div></header>
@@ -46,55 +46,49 @@
 <p>This is not an argument that every outflow is harmful. Trade allows a city to obtain products and expertise it cannot efficiently make itself. Diversified retirement accounts reduce household risk. Outside owners can bring capital and operating skill. The structural question is whether the region retains enough income-producing capacity to keep paying for what it imports.</p>
 </div>
 <figure aria-labelledby="bathtub-title" class="module bathtub-module">
-<div class="module-head"><span>Interactive model 01</span><h3 id="bathtub-title">A city as a bathtub</h3><p>Set the yearly flows and starting capacity, then move through a 30-year horizon. Capacity represents accumulated local capability—not literal cash.</p></div>
-<div class="bathtub-presets" aria-label="Simulation presets">
-<span>Presets</span>
-<button data-tub-preset="balanced" type="button">Balanced system</button>
-<button data-tub-preset="accumulation" type="button">Slow accumulation</button>
-<button data-tub-preset="leakage" type="button">Persistent leakage</button>
-<button data-tub-preset="extraction" type="button">Rapid extraction</button>
-<button data-tub-preset="recovery" type="button">Reinvestment recovery</button>
+<div class="module-head"><span>Interactive model 01</span><h3 id="bathtub-title">A city as a bathtub</h3><p>Select a city. The water level tracks the City Capacity Index — an evidence-anchored historical reconstruction (1970 = 100) of a region’s ability to earn, retain, reinvest, and adapt. It is not GDP, population, or a municipal bank balance.</p></div>
+<div class="bathtub-presets" aria-label="City selector" id="tubCityButtons">
+<span>Cities · evidence-anchored historical reconstructions</span>
 </div>
 <div class="bathtub-dashboard">
 <div class="bathtub-stage" id="bathtubStage">
-<div class="tub-year"><span>Current year</span><strong id="tubYearHero">0.0</strong></div>
-<div class="faucet" id="tubFaucet"><i id="tubStream"></i><em>annual inflow</em></div>
-<div class="tub"><div class="water" id="tubWater"><span></span></div><div class="drain" id="tubDrain"><i></i><em>effective outflow</em></div></div>
+<div class="tub-year"><span>Year</span><strong id="tubYearHero">2020</strong></div>
+<div class="faucet" id="tubFaucet"><i id="tubStream"></i><em>capacity gains</em></div>
+<div class="tub"><div class="water" id="tubWater"><span></span></div><div class="drain" id="tubDrain"><i></i><em>capacity losses</em></div></div>
 </div>
 <div class="bathtub-readouts" aria-live="polite">
-<div><span>Annual inflow</span><strong id="tubReadInflow">60.0</strong></div>
-<div><span>Base annual outflow</span><strong id="tubReadBaseOutflow">55.0</strong></div>
-<div><span>Effective annual outflow</span><strong id="tubReadEffectiveOutflow">55.0</strong></div>
-<div><span>Net annual flow</span><strong id="tubReadNet">+5.0</strong></div>
-<div><span>Current capacity</span><strong id="tubReadCapacity">50.0</strong></div>
-<div><span>Current year</span><strong id="tubReadYear">0.0</strong></div>
+<div><span>City Capacity Index</span><strong id="tubReadIndex">100.0</strong></div>
+<div><span>Uncertainty</span><strong id="tubReadUnc">±0.0</strong></div>
+<div><span>Confidence</span><strong id="tubReadConf">0.95</strong></div>
+<div><span>Value type</span><strong id="tubReadType">Constructed</strong></div>
+<div><span>Index trend</span><strong id="tubReadNet">+0.0/yr</strong></div>
+<div><span>Current year</span><strong id="tubReadYear">2020</strong></div>
 </div>
 </div>
 <div class="bathtub-controls">
-<div class="control-grid three">
-<label>Annual inflow <input aria-label="Annual inflow value" id="inflowNumber" max="100" min="0" step="1" type="number" value="60"/><input aria-label="Annual inflow slider" id="inflowRange" max="100" min="0" step="1" type="range" value="60"/></label>
-<label>Base annual outflow <input aria-label="Base annual outflow value" id="outflowNumber" max="100" min="0" step="1" type="number" value="55"/><input aria-label="Base annual outflow slider" id="outflowRange" max="100" min="0" step="1" type="range" value="55"/></label>
-<label>Starting capacity <input aria-label="Starting capacity value" id="startCapacityNumber" max="100" min="0" step="1" type="number" value="50"/><input aria-label="Starting capacity slider" id="startCapacityRange" max="100" min="0" step="1" type="range" value="50"/></label>
-</div>
-<label class="bathtub-mode"><input id="levelDrainageToggle" type="checkbox"/> <span>Drainage depends on capacity level</span></label>
-<p class="bathtub-formula" id="bathtubFormula">Constant mode: capacity change per year = annual inflow − annual outflow.</p>
+<div class="attr-list" id="attrList"></div>
+<p class="bathtub-formula" id="bathtubFormula">Seven component attributes (1970 = 100), weighted into the composite index. Values between benchmark decades are interpolated for animation only.</p>
 <div class="playback-row">
 <div class="playback-actions"><button id="tubPlay" type="button">Play</button><button disabled id="tubPause" type="button">Pause</button><button id="tubReset" type="button">Reset</button></div>
 <div class="speed-control" aria-label="Playback speed"><span>Speed</span><button aria-pressed="true" data-tub-speed="1" type="button">1×</button><button aria-pressed="false" data-tub-speed="2" type="button">2×</button><button aria-pressed="false" data-tub-speed="4" type="button">4×</button></div>
 </div>
-<label class="time-scrubber"><span>Year <span><input aria-label="Simulation year value" id="tubTimeNumber" max="30" min="0" step="0.1" type="number" value="0"/> / 30</span></span><input aria-label="Simulation year slider" id="tubTimeRange" max="30" min="0" step="0.05" type="range" value="0"/></label>
+<label class="time-scrubber"><span>Year <span><input aria-label="Simulation year value" id="tubTimeNumber" max="2020" min="1970" step="0.1" type="number" value="2020"/> / 2020</span></span><input aria-label="Simulation year slider" id="tubTimeRange" max="2020" min="1970" step="0.05" type="range" value="2020"/></label>
 </div>
 <div class="bathtub-chart-wrap">
-<div class="chart-heading"><span>Capacity over time</span><small>Complete trajectory · bold line shows elapsed time</small></div>
+<div class="chart-heading"><span>City Capacity Index, 1970–2020</span><small>Gold band = uncertainty · markers = constructed benchmarks (hover for details)</small></div>
 <svg aria-labelledby="tubChartTitle tubChartDesc" class="bathtub-chart" id="tubChart" role="img" viewBox="0 0 620 220">
-<title id="tubChartTitle">Capacity over the 30-year simulation</title><desc id="tubChartDesc">The full calculated capacity path with a marker at the current year.</desc>
+<title id="tubChartTitle">City Capacity Index over five decades</title><desc id="tubChartDesc">The reconstructed City Capacity Index with an uncertainty band, benchmark markers, and a marker at the current year.</desc>
 <line class="chart-axis" x1="48" x2="600" y1="180" y2="180"></line><line class="chart-axis" x1="48" x2="48" y1="20" y2="180"></line>
-<line class="chart-grid" x1="48" x2="600" y1="100" y2="100"></line><text x="39" y="24">100</text><text x="39" y="104">50</text><text x="39" y="184">0</text><text x="48" y="204">0</text><text x="317" y="204">15 years</text><text x="583" y="204">30</text>
-<path class="chart-future" id="tubChartFuture"></path><path class="chart-elapsed" id="tubChartElapsed"></path><circle class="chart-marker" cx="48" cy="100" id="tubChartMarker" r="5"></circle>
+<line class="chart-grid" x1="48" x2="600" y1="100" y2="100"></line><text id="tubAxisMax" x="39" y="24">110</text><text id="tubAxisMid" x="39" y="104">55</text><text x="39" y="184">0</text><text x="48" y="204">1970</text><text x="317" y="204">1995</text><text x="583" y="204">2020</text>
+<path class="chart-band" id="tubChartBand"></path><path class="chart-future" id="tubChartFuture"></path><path class="chart-elapsed" id="tubChartElapsed"></path><g id="tubBenchmarks"></g><g id="tubOverlay"></g><circle class="chart-marker" cx="48" cy="100" id="tubChartMarker" r="5"></circle>
 </svg>
 </div>
-<div class="model-result"><span id="tubDirection">Slow accumulation</span><strong id="tubBalance">+5.0 capacity units per year</strong><p id="tubExplain">A modest surplus steadily builds accumulated capacity.</p><small id="tubConstraint"></small></div>
-<figcaption>Conceptual model. Capacity includes institutions, skills, firms, infrastructure, and fiscal room; it is not a municipal bank balance.</figcaption>
+<div class="bathtub-presets overlay-row" id="overlayRow"><span>Supporting data overlays · measured series shown beside the index, never changing the water level</span></div>
+<p class="bathtub-formula" id="tubOverlayNote" hidden=""></p>
+<div class="model-result"><span id="tubDirection">2020 · Timeline</span><strong id="tubBalance"></strong><p id="tubExplain"></p><small id="tubConstraint"></small></div>
+<p class="module-sources" id="tubGeography"></p>
+<p class="module-sources" id="tubSources"></p>
+<figcaption>Constructed historical reconstruction calibrated from sourced evidence — not an official statistic. <span id="tubHeadline"></span></figcaption>
 </figure>
 <aside class="section-takeaway"><span>01</span><div><small>What this section adds</small><strong>A regional economy becomes fragile when recurring outflow exceeds its ability to generate new outside income.</strong></div></aside>
 </div>

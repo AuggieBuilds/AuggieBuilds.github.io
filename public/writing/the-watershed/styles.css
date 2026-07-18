@@ -77,3 +77,20 @@ html[data-theme="dark"]{--paper:#141814;--paper-2:#20251f;--ink:#f2eee4;--muted:
 .healthcare-flow .hospital-node text{stroke:none;paint-order:normal}
 .succession-loop svg .loop-node{position:static;width:auto;min-height:0;padding:0;background:none;border:0;box-shadow:none;transform:none!important}
 .forest-labels .root-label{top:auto}
+
+/* Bathtub v4 — City Capacity historical data */
+.attr-list{display:flex;flex-direction:column;gap:9px;margin:24px 0 10px}
+.attr-row .attr-label{display:flex;align-items:baseline;gap:6px;font-size:11px;margin-bottom:4px}
+.attr-row .attr-label em{font-family:var(--mono);font-size:9px;font-style:normal;color:var(--muted)}
+.attr-row .attr-label b{margin-left:auto;font-family:var(--mono);font-weight:500;color:var(--blue)}
+.attr-row .attr-track{display:block;height:5px;background:color-mix(in srgb,var(--line) 55%,transparent)}
+.attr-row .attr-track i{display:block;height:100%;width:0;background:var(--blue);transition:width .15s linear}
+.chart-band{fill:var(--gold);opacity:.16;stroke:none}
+.chart-benchmark{fill:var(--gold);stroke:var(--paper);stroke-width:1.5;cursor:help}
+.chart-overlay{fill:none;stroke:var(--green);stroke-width:2}
+.chart-overlay-dot{fill:var(--green);cursor:help}
+.chart-overlay-label{font:10px var(--mono);fill:var(--green)}
+.overlay-row{margin:16px 0 0;padding-bottom:0;border-bottom:0}
+#tubOverlayNote{color:var(--green)}
+.module-sources{font-family:var(--mono);font-size:10px;line-height:1.8;color:var(--muted);margin:18px 0 0}
+.module-sources a{color:inherit}

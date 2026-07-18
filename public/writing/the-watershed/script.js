@@ -59,158 +59,179 @@
     setTimeout(()=>e.currentTarget.textContent='Copy essay link',1600);
   });
 
-  // Bathtub stock-and-flow simulation
+  // Bathtub — City Capacity historical model (all values load from city-capacity-data.js)
   const tubRoot=$('.bathtub-module');
-  if(tubRoot){
-    const HORIZON=30,MAX_CAPACITY=100,SIM_STEP=.02;
-    const controls={
-      inflow:$('#inflowRange'),outflow:$('#outflowRange'),start:$('#startCapacityRange'),
-      inflowNumber:$('#inflowNumber'),outflowNumber:$('#outflowNumber'),startNumber:$('#startCapacityNumber'),
-      advanced:$('#levelDrainageToggle'),time:$('#tubTimeRange'),timeNumber:$('#tubTimeNumber')
-    };
-    const presets={
-      balanced:{inflow:60,outflow:60,start:50,advanced:false},
-      accumulation:{inflow:60,outflow:55,start:40,advanced:false},
-      leakage:{inflow:55,outflow:62,start:80,advanced:false},
-      extraction:{inflow:40,outflow:70,start:90,advanced:false},
-      recovery:{inflow:70,outflow:50,start:25,advanced:true}
-    };
-    const simulation={year:0,speed:1,playing:false,lastFrame:null,frame:null,trajectory:[]};
-
-    const config=()=>({
-      inflow:+controls.inflow.value,
-      outflow:+controls.outflow.value,
-      start:+controls.start.value,
-      advanced:controls.advanced.checked
-    });
-    const effectiveOutflow=(capacity,cfg)=>cfg.advanced
-      ? cfg.outflow*(.35+.65*capacity/MAX_CAPACITY)
-      : cfg.outflow;
-    const calculateTrajectory=cfg=>{
-      const points=[{year:0,capacity:cfg.start}];
-      let capacity=cfg.start;
-      const steps=Math.round(HORIZON/SIM_STEP);
-      for(let index=1;index<=steps;index++){
-        const net=cfg.inflow-effectiveOutflow(capacity,cfg);
-        capacity=clamp(capacity+net*SIM_STEP,0,MAX_CAPACITY);
-        points.push({year:index*SIM_STEP,capacity});
+  if(tubRoot&&window.CITY_DATABASE){
+    const DB=window.CITY_DATABASE,Y0=1970,Y1=2020,SPAN=Y1-Y0;
+    const state={city:DB.order[0],year:Y1,speed:1,playing:false,lastFrame:null,frame:null,overlay:null};
+    const svgNS='http://www.w3.org/2000/svg';
+    const svgEl=(tag,attrs,parent)=>{const node=document.createElementNS(svgNS,tag);Object.entries(attrs||{}).forEach(([k,v])=>node.setAttribute(k,v));parent&&parent.append(node);return node;};
+    const svgTitle=(node,text)=>{const t=document.createElementNS(svgNS,'title');t.textContent=text;node.append(t);};
+    const interp=(pts,t,getYear,getValue)=>{
+      if(t<=getYear(pts[0]))return getValue(pts[0]);
+      for(let i=1;i<pts.length;i++){
+        if(t<=getYear(pts[i])){
+          const a=getYear(pts[i-1]),b=getYear(pts[i]);
+          return getValue(pts[i-1])+(getValue(pts[i])-getValue(pts[i-1]))*((t-a)/(b-a));
+        }
       }
-      return points;
+      return getValue(pts[pts.length-1]);
     };
-    const valueAtYear=year=>{
-      const position=clamp(year/SIM_STEP,0,simulation.trajectory.length-1);
-      const lower=Math.floor(position),upper=Math.min(lower+1,simulation.trajectory.length-1);
-      const fraction=position-lower;
-      const a=simulation.trajectory[lower],b=simulation.trajectory[upper];
-      return a.capacity+(b.capacity-a.capacity)*fraction;
+    const city=()=>DB.cities[state.city];
+    const scaleMax=()=>Math.max(110,...city().cci.map(p=>p[2]+p[3]))*1.04;
+    const chartX=year=>48+((year-Y0)/SPAN)*552;
+    const chartY=value=>180-(value/scaleMax())*160;
+    const cciAt=t=>interp(city().cci,t,p=>p[0],p=>p[2]);
+    const uncAt=t=>interp(city().cci,t,p=>p[0],p=>p[3]);
+    const confAt=t=>interp(city().cci,t,p=>p[0],p=>p[4]);
+    const qualifierNote=q=>q==='≈'?' (approximate)':q==='<'?' (upper bound)':q==='≈yr'?' (approximate year)':'';
+    const fmtSeries=(series,value,q)=>{
+      let out;
+      if(series.unit.indexOf('dollars')>=0){const dollars=value*1000;out=dollars>=1e9?`$${(dollars/1e9).toFixed(2)}B`:`$${Math.round(dollars/1e6)}M`;}
+      else if(series.unit==='people')out=value>=1e6?`${(value/1e6).toFixed(2)}M`:`${Math.round(value/1000)}K`;
+      else out=`${value}%`;
+      return `${q&&q!=='≈yr'?q:''}${out}`;
     };
-    const chartPoint=(year,capacity)=>({x:48+(year/HORIZON)*552,y:180-(capacity/MAX_CAPACITY)*160});
-    const chartPath=points=>points.map((point,index)=>{
-      const plotted=chartPoint(point.year,point.capacity);
-      return `${index?'L':'M'}${plotted.x.toFixed(2)} ${plotted.y.toFixed(2)}`;
-    }).join(' ');
-    const statusFor=net=>{
-      if(net>=15)return ['Strong accumulation','A large recurring surplus rapidly builds accumulated capacity.'];
-      if(net>1)return ['Slow accumulation','A modest surplus steadily builds accumulated capacity.'];
-      if(net>=-1)return ['Stable','Inflow and effective outflow are nearly balanced.'];
-      if(net>-15)return ['Slow decline','A modest deficit steadily draws down accumulated capacity.'];
-      return ['Rapid decline','A large recurring deficit quickly erodes accumulated capacity.'];
+    // Build city selector and attribute rows from the database
+    const cityButtons=$('#tubCityButtons');
+    DB.order.forEach(id=>{
+      const button=document.createElement('button');
+      button.type='button';button.dataset.tubCity=id;button.textContent=DB.cities[id].name;
+      button.addEventListener('click',()=>{state.city=id;state.overlay=null;state.year=Y0;renderCity();setPlaying(true);});
+      cityButtons.append(button);
+    });
+    const attrList=$('#attrList');
+    DB.attrs.forEach((attr,i)=>{
+      const row=document.createElement('div');row.className='attr-row';
+      row.innerHTML=`<span class="attr-label">${attr.label} <em>${Math.round(attr.w*100)}%</em><b data-attr-value="${i}"></b></span><span class="attr-track"><i data-attr-fill="${i}"></i></span>`;
+      attrList.append(row);
+    });
+    const renderOverlay=()=>{
+      const c=city(),layer=$('#tubOverlay');layer.replaceChildren();
+      $$('#overlayRow button').forEach(b=>b.classList.toggle('active',(b.dataset.overlayId||null)===state.overlay));
+      const series=c.series.find(x=>x.id===state.overlay);
+      const note=$('#tubOverlayNote');note.hidden=!series;
+      if(!series){note.textContent='';return;}
+      const values=series.points.map(p=>p.v);
+      const mn=Math.min(...values),mx=Math.max(...values),span=(mx-mn)||1;
+      const oy=v=>168-((v-mn)/span)*130;
+      svgEl('polyline',{class:'chart-overlay',points:series.points.map(p=>`${chartX(p.y).toFixed(1)},${oy(p.v).toFixed(1)}`).join(' ')},layer);
+      series.points.forEach(p=>{
+        const dot=svgEl('circle',{class:'chart-overlay-dot',cx:chartX(p.y).toFixed(1),cy:oy(p.v).toFixed(1),r:'3.5',tabindex:'0'},layer);
+        svgTitle(dot,`${p.y} · ${fmtSeries(series,p.v,p.q)} · ${series.type}${qualifierNote(p.q)}`);
+      });
+      const first=series.points[0],last=series.points[series.points.length-1];
+      const startLabel=svgEl('text',{class:'chart-overlay-label',x:(chartX(first.y)+6).toFixed(1),y:(oy(first.v)-8).toFixed(1)},layer);
+      startLabel.textContent=`${first.y}: ${fmtSeries(series,first.v,first.q)}`;
+      const endLabel=svgEl('text',{class:'chart-overlay-label','text-anchor':'end',x:(chartX(last.y)-6).toFixed(1),y:(oy(last.v)-8).toFixed(1)},layer);
+      endLabel.textContent=`${last.y}: ${fmtSeries(series,last.v,last.q)}`;
+      const srcObj=c.sources.find(x=>x.id===series.src);
+      note.textContent=`${series.label} — ${series.type} · ${series.unit}. ${series.note} Source: ${srcObj?srcObj.publisher:series.src}.`;
     };
-    const formatSigned=value=>`${value>0?'+':''}${value.toFixed(1)}`;
-    const renderChart=(capacity)=>{
-      const fullPath=chartPath(simulation.trajectory);
-      const elapsedCount=Math.max(1,Math.floor(simulation.year/SIM_STEP)+1);
-      const elapsed=simulation.trajectory.slice(0,elapsedCount);
-      if(elapsed[elapsed.length-1]?.year<simulation.year)elapsed.push({year:simulation.year,capacity});
-      $('#tubChartFuture').setAttribute('d',fullPath);
-      $('#tubChartElapsed').setAttribute('d',chartPath(elapsed));
-      const marker=chartPoint(simulation.year,capacity);
-      $('#tubChartMarker').setAttribute('cx',marker.x.toFixed(2));
-      $('#tubChartMarker').setAttribute('cy',marker.y.toFixed(2));
+    const renderFrame=()=>{
+      const c=city(),max=scaleMax();
+      const value=cciAt(state.year),unc=uncAt(state.year),conf=confAt(state.year);
+      const hi=Math.min(state.year+1,Y1),lo=Math.max(state.year-1,Y0);
+      const slope=(cciAt(hi)-cciAt(lo))/Math.max(.5,hi-lo);
+      const rising=slope>=.05,falling=slope<=-.05;
+      const streamStrength=clamp(.25+Math.abs(slope)/6,.25,1);
+      $('#tubWater').style.height=`${(value/max)*100}%`;
+      $('#bathtubStage').style.setProperty('--inflow-strength',(rising?streamStrength:.1).toFixed(2));
+      $('#bathtubStage').style.setProperty('--outflow-strength',(falling?streamStrength:.1).toFixed(2));
+      $('#tubYearHero').textContent=Math.round(state.year);
+      $('#tubReadIndex').textContent=value.toFixed(1);
+      $('#tubReadUnc').textContent=`±${unc.toFixed(1)}`;
+      $('#tubReadConf').textContent=conf.toFixed(2);
+      const nearBenchmark=c.cci.some(p=>Math.abs(p[0]-state.year)<=.25);
+      $('#tubReadType').textContent=nearBenchmark?'Constructed':'Interpolated';
+      $('#tubReadNet').textContent=`${slope>0?'+':slope<0?'−':''}${Math.abs(slope).toFixed(1)}/yr`;
+      $('#tubReadYear').textContent=Math.round(state.year);
+      $('#tubTimeNumber').value=state.year.toFixed(1);
+      $('#tubTimeRange').value=state.year.toFixed(2);
+      const elapsed=c.cci.filter(p=>p[0]<=state.year).map(p=>({x:chartX(p[0]),y:chartY(p[2])}));
+      elapsed.push({x:chartX(state.year),y:chartY(value)});
+      $('#tubChartElapsed').setAttribute('d',elapsed.map((p,i)=>`${i?'L':'M'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' '));
+      $('#tubChartMarker').setAttribute('cx',chartX(state.year).toFixed(1));
+      $('#tubChartMarker').setAttribute('cy',chartY(value).toFixed(1));
+      const attrRows=Object.keys(c.attrPoints).map(k=>[+k,c.attrPoints[k]]).sort((a,b)=>a[0]-b[0]);
+      const attrMax=Math.max(...attrRows.map(r=>Math.max(...r[1])))*1.05;
+      DB.attrs.forEach((_,i)=>{
+        const attrValue=interp(attrRows,state.year,r=>r[0],r=>r[1][i]);
+        $(`[data-attr-value="${i}"]`,tubRoot).textContent=attrValue.toFixed(0);
+        $(`[data-attr-fill="${i}"]`,tubRoot).style.width=`${(attrValue/attrMax)*100}%`;
+      });
+      let ann=c.annotations[0];
+      c.annotations.forEach(a=>{if(a.y<=state.year+.001)ann=a;});
+      const annSrc=c.sources.find(x=>x.id===ann.src);
+      $('#tubDirection').textContent=`${ann.y} · Timeline`;
+      $('#tubBalance').textContent=ann.title;
+      $('#tubExplain').textContent=ann.text;
+      $('#tubConstraint').innerHTML=annSrc?`Source: <a href="${annSrc.url}" rel="noopener" target="_blank">${annSrc.publisher}</a>`:'';
     };
-    const renderTub=()=>{
-      const cfg=config(),capacity=valueAtYear(simulation.year);
-      const effective=effectiveOutflow(capacity,cfg),net=cfg.inflow-effective;
-      const [status,explanation]=statusFor(net);
-      const atMaximum=capacity>=MAX_CAPACITY-.001,atZero=capacity<=.001;
-      const excess=atMaximum?Math.max(0,net):0;
-      const visibleOutflow=atZero?Math.min(effective,cfg.inflow):effective;
-      controls.inflowNumber.value=cfg.inflow.toFixed(0);
-      controls.outflowNumber.value=cfg.outflow.toFixed(0);
-      controls.startNumber.value=cfg.start.toFixed(0);
-      $('#tubWater').style.height=`${capacity}%`;
-      $('#bathtubStage').style.setProperty('--inflow-strength',(cfg.inflow/100).toFixed(2));
-      $('#bathtubStage').style.setProperty('--outflow-strength',(visibleOutflow/100).toFixed(2));
-      $('#tubReadInflow').textContent=cfg.inflow.toFixed(1);
-      $('#tubReadBaseOutflow').textContent=cfg.outflow.toFixed(1);
-      $('#tubReadEffectiveOutflow').textContent=effective.toFixed(1);
-      $('#tubReadNet').textContent=formatSigned(net);
-      $('#tubReadCapacity').textContent=capacity.toFixed(1);
-      $('#tubReadYear').textContent=simulation.year.toFixed(1);
-      $('#tubYearHero').textContent=simulation.year.toFixed(1);
-      controls.timeNumber.value=simulation.year.toFixed(1);
-      controls.time.value=simulation.year.toFixed(2);
-      $('#tubDirection').textContent=status;
-      $('#tubBalance').textContent=`${formatSigned(net)} capacity units per year`;
-      $('#tubExplain').textContent=explanation;
-      $('#tubConstraint').textContent=atMaximum
-        ? `Capacity constraint reached. The level cannot rise further; current excess inflow is ${excess.toFixed(1)} units per year.`
-        : atZero
-          ? 'No accumulated capacity remains to drain. The level cannot fall below zero.'
-          : '';
-      $('#bathtubFormula').textContent=cfg.advanced
-        ? 'Conceptual level-dependent mode: effective outflow = base outflow × (0.35 + 0.65 × current capacity / maximum capacity).'
-        : 'Constant mode: capacity change per year = annual inflow − annual outflow.';
-      renderChart(capacity);
+    const renderCity=()=>{
+      const c=city(),max=scaleMax();
+      $$('button[data-tub-city]',tubRoot).forEach(b=>b.classList.toggle('active',b.dataset.tubCity===state.city));
+      $('#tubAxisMax').textContent=Math.round(max);
+      $('#tubAxisMid').textContent=Math.round(max/2);
+      const upper=c.cci.map(p=>`${chartX(p[0]).toFixed(1)} ${chartY(p[2]+p[3]).toFixed(1)}`);
+      const lower=c.cci.slice().reverse().map(p=>`${chartX(p[0]).toFixed(1)} ${chartY(Math.max(0,p[2]-p[3])).toFixed(1)}`);
+      $('#tubChartBand').setAttribute('d',`M${upper.join(' L')} L${lower.join(' L')} Z`);
+      $('#tubChartFuture').setAttribute('d',c.cci.map((p,i)=>`${i?'L':'M'}${chartX(p[0]).toFixed(1)} ${chartY(p[2]).toFixed(1)}`).join(' '));
+      const bench=$('#tubBenchmarks');bench.replaceChildren();
+      c.cci.forEach(p=>{
+        const dot=svgEl('circle',{class:'chart-benchmark',cx:chartX(p[0]).toFixed(1),cy:chartY(p[2]).toFixed(1),r:'4.5',tabindex:'0'},bench);
+        svgTitle(dot,`${p[0]} · ${p[1]} ±${p[3]} index points · constructed benchmark · confidence ${p[4].toFixed(2)} · weighted sum of seven attributes`);
+      });
+      const overlayRow=$('#overlayRow');
+      $$('button',overlayRow).forEach(b=>b.remove());
+      if(c.series.length){
+        overlayRow.hidden=false;
+        [{id:null,label:'None'}].concat(c.series).forEach(entry=>{
+          const button=document.createElement('button');
+          button.type='button';button.textContent=entry.label;
+          if(entry.id)button.dataset.overlayId=entry.id;
+          button.addEventListener('click',()=>{state.overlay=entry.id;renderOverlay();});
+          overlayRow.append(button);
+        });
+      }else overlayRow.hidden=true;
+      $('#tubGeography').textContent=`${c.region}. ${c.geographyNote}`;
+      $('#tubSources').innerHTML='Sources: '+c.sources.map(src=>`<a href="${src.url}" rel="noopener" target="_blank">${src.title} — ${src.publisher}</a>`).join(' · ');
+      $('#tubHeadline').textContent=c.headline;
+      renderOverlay();
+      renderFrame();
     };
-    const recalculate=()=>{simulation.trajectory=calculateTrajectory(config());renderTub();};
     const setPlaying=playing=>{
-      simulation.playing=playing;
-      simulation.lastFrame=null;
+      state.playing=playing;
+      state.lastFrame=null;
       $('#tubPlay').disabled=playing;
       $('#tubPause').disabled=!playing;
-      if(!playing&&simulation.frame){cancelAnimationFrame(simulation.frame);simulation.frame=null;}
-      if(playing)simulation.frame=requestAnimationFrame(tick);
+      if(!playing&&state.frame){cancelAnimationFrame(state.frame);state.frame=null;}
+      if(playing)state.frame=requestAnimationFrame(tick);
     };
     const tick=timestamp=>{
-      if(!simulation.playing)return;
-      if(simulation.lastFrame!==null){
-        const elapsedSeconds=Math.min((timestamp-simulation.lastFrame)/1000,.25);
-        simulation.year=clamp(simulation.year+elapsedSeconds*simulation.speed,0,HORIZON);
-        renderTub();
-        if(simulation.year>=HORIZON){setPlaying(false);return;}
+      if(!state.playing)return;
+      if(state.lastFrame!==null){
+        const elapsedSeconds=Math.min((timestamp-state.lastFrame)/1000,.25);
+        state.year=clamp(state.year+elapsedSeconds*4*state.speed,Y0,Y1);
+        renderFrame();
+        if(state.year>=Y1){setPlaying(false);return;}
       }
-      simulation.lastFrame=timestamp;
-      simulation.frame=requestAnimationFrame(tick);
+      state.lastFrame=timestamp;
+      state.frame=requestAnimationFrame(tick);
     };
-    const reset=()=>{setPlaying(false);simulation.year=0;renderTub();};
-
-    [[controls.inflow,controls.inflowNumber],[controls.outflow,controls.outflowNumber],[controls.start,controls.startNumber]].forEach(([slider,number])=>{
-      const fromSlider=()=>{number.value=slider.value;recalculate();};
-      const fromNumber=()=>{slider.value=clamp(+number.value||0,0,100);recalculate();};
-      slider.addEventListener('input',fromSlider);slider.addEventListener('change',fromSlider);
-      number.addEventListener('input',fromNumber);number.addEventListener('change',fromNumber);
-    });
-    controls.advanced.addEventListener('change',recalculate);
-    controls.time.addEventListener('input',()=>{setPlaying(false);simulation.year=+controls.time.value;renderTub();});
-    controls.time.addEventListener('change',()=>{setPlaying(false);simulation.year=+controls.time.value;renderTub();});
-    const scrubToNumber=()=>{setPlaying(false);simulation.year=clamp(+controls.timeNumber.value||0,0,HORIZON);renderTub();};
-    controls.timeNumber.addEventListener('input',scrubToNumber);controls.timeNumber.addEventListener('change',scrubToNumber);
-    $('#tubPlay').addEventListener('click',()=>{if(simulation.year>=HORIZON)simulation.year=0;setPlaying(true);});
+    $('#tubPlay').addEventListener('click',()=>{if(state.year>=Y1)state.year=Y0;setPlaying(true);});
     $('#tubPause').addEventListener('click',()=>setPlaying(false));
-    $('#tubReset').addEventListener('click',reset);
+    $('#tubReset').addEventListener('click',()=>{setPlaying(false);state.year=Y0;renderFrame();});
+    const scrubTo=value=>{setPlaying(false);state.year=clamp(value,Y0,Y1);renderFrame();};
+    $('#tubTimeRange').addEventListener('input',()=>scrubTo(+$('#tubTimeRange').value));
+    $('#tubTimeRange').addEventListener('change',()=>scrubTo(+$('#tubTimeRange').value));
+    $('#tubTimeNumber').addEventListener('input',()=>scrubTo(+$('#tubTimeNumber').value||Y0));
+    $('#tubTimeNumber').addEventListener('change',()=>scrubTo(+$('#tubTimeNumber').value||Y0));
     $$('[data-tub-speed]',tubRoot).forEach(button=>button.addEventListener('click',()=>{
-      simulation.speed=+button.dataset.tubSpeed;
+      state.speed=+button.dataset.tubSpeed;
       $$('[data-tub-speed]',tubRoot).forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
     }));
-    $$('[data-tub-preset]',tubRoot).forEach(button=>button.addEventListener('click',()=>{
-      const preset=presets[button.dataset.tubPreset];
-      controls.inflow.value=preset.inflow;controls.outflow.value=preset.outflow;controls.start.value=preset.start;controls.advanced.checked=preset.advanced;
-      $$('[data-tub-preset]',tubRoot).forEach(item=>item.classList.toggle('active',item===button));
-      reset();recalculate();
-    }));
-    simulation.trajectory=calculateTrajectory(config());
-    renderTub();
+    renderCity();
   }
 
   // Watershed path-dependence model
