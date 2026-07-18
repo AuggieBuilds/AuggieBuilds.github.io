@@ -1,0 +1,48 @@
+---
+import SiteHeader from '../components/SiteHeader.astro';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Austin Woyshnar — Essays & Projects',
+  description = 'Writing and projects about cities, systems, institutions, infrastructure, and the forces that shape opportunity.',
+} = Astro.props;
+
+const pageTitle = title === 'Austin Woyshnar — Essays & Projects' ? title : `${title} — Austin Woyshnar`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content="#f1ede3" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Libre+Franklin:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet" />
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <div class="page-shell">
+      <SiteHeader />
+      <main>
+        <slot />
+      </main>
+      <footer class="site-footer">
+        <div><strong>Austin Woyshnar</strong><span>Essays, visual explanations, and ongoing work.</span></div>
+        <nav aria-label="Footer navigation"><a href="/writing/">Writing</a><a href="/projects/">Projects</a><a href="/about/">About</a></nav>
+        <small>Built for careful reading.</small>
+      </footer>
+    </div>
+  </body>
+</html>

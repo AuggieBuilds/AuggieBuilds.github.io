@@ -1,0 +1,15 @@
+{
+  "name": "The Watershed",
+  "short_name": "Watershed",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#e9e2d4",
+  "theme_color": "#111613",
+  "icons": [
+    {
+      "src": "assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

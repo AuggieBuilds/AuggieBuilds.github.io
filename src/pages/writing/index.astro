@@ -1,0 +1,36 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+
+const posts = (await getCollection('writing', ({ data }) => !data.draft)).sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
+const formatDate = (date: Date) => new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(date);
+---
+
+<BaseLayout title="Writing" description="Essays and research by Austin Woyshnar about cities, systems, institutions, infrastructure, and opportunity.">
+  <section class="page-intro">
+    <span class="eyebrow">Writing</span>
+    <h1>Essays for understanding how systems shape places.</h1>
+    <p>Long-form arguments, research notes, and visual explanations. The recurring question is how temporary flows become—or fail to become—durable local capability.</p>
+  </section>
+  <section class="writing-list" aria-label="Published writing">
+    <ArticleCard
+      href="/writing/the-watershed/"
+      title="The Watershed"
+      description="How cities convert temporary capital flows into durable institutions, infrastructure, skills, ownership, and successor industries."
+      eyebrow="Interactive visual essay · 2026"
+      topics={['Regional economics', 'Infrastructure', 'Institutions']}
+      image="/writing/the-watershed/assets/scranton-coal-breaker.jpg"
+      featured
+    />
+    {posts.map((post) => (
+      <ArticleCard
+        href={`/writing/${post.id}/`}
+        title={post.data.title}
+        description={post.data.description}
+        eyebrow={`Essay · ${formatDate(post.data.publishedAt)}`}
+        topics={post.data.topics}
+      />
+    ))}
+  </section>
+</BaseLayout>
