@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <rect width="800" height="500" fill="#e4ddcf"/>
+  <rect x="1" y="1" width="798" height="498" fill="none" stroke="#b8b09f" stroke-width="2" stroke-dasharray="8 8"/>
+  <text x="400" y="240" text-anchor="middle" font-family="'DM Mono', monospace" font-size="20" letter-spacing="3" fill="#62685f">SCREENSHOT</text>
+  <text x="400" y="275" text-anchor="middle" font-family="'DM Mono', monospace" font-size="20" letter-spacing="3" fill="#62685f">COMING SOON</text>
+</svg>
