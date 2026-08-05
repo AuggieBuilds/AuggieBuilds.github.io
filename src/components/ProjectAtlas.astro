@@ -373,16 +373,7 @@ const serializedProjects = JSON.stringify(projects).replace(/</g, '\\u003c');
       searchInput.focus();
     });
 
-    if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver((entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return;
-        observer.disconnect();
-        void ensureMap();
-      }, { rootMargin: '320px' });
-      observer.observe(mapElement);
-    } else {
-      void ensureMap();
-    }
+    void ensureMap();
   }
 
   setupProjectAtlas();
