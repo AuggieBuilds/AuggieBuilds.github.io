@@ -1,0 +1,389 @@
+---
+import 'leaflet/dist/leaflet.css';
+import '../styles/project-atlas.css';
+import projects, { sectorFilters, serviceFilters } from '../data/projects';
+
+const serializedProjects = JSON.stringify(projects).replace(/</g, '\\u003c');
+---
+
+<section class="project-atlas" data-project-atlas aria-labelledby="project-atlas-heading">
+  <header class="project-atlas-heading">
+    <div>
+      <span class="eyebrow">Project atlas</span>
+      <h2 id="project-atlas-heading">Engineering work, mapped by place.</h2>
+    </div>
+    <p>Explore the geographic range of selected construction engineering experience, then open any project for its complete scope.</p>
+  </header>
+
+  <div class="project-atlas-controls" aria-label="Search and filter projects">
+    <label class="project-search" for="project-search">
+      <span>Search projects</span>
+      <input id="project-search" type="search" placeholder="Name, place, service…" autocomplete="off" />
+    </label>
+
+    <label class="project-filter" for="project-sector-filter">
+      <span>Sector</span>
+      <select id="project-sector-filter">
+        <option value="">All sectors</option>
+        {sectorFilters.map((sector) => <option value={sector}>{sector}</option>)}
+      </select>
+    </label>
+
+    <label class="project-filter" for="project-service-filter">
+      <span>Engineering service</span>
+      <select id="project-service-filter">
+        <option value="">All services</option>
+        {serviceFilters.map((service) => <option value={service}>{service}</option>)}
+      </select>
+    </label>
+
+    <button class="project-filter-reset" type="button" data-clear-filters disabled>All projects</button>
+  </div>
+
+  <div class="project-atlas-status">
+    <p><strong data-result-count role="status" aria-live="polite" aria-atomic="true">{projects.length} projects</strong><span>Hover, focus, or select a numbered marker.</span></p>
+    <div class="project-map-key" aria-label="Map location precision key">
+      <span><i class="precision-dot exact" aria-hidden="true"></i> Exact</span>
+      <span><i class="precision-dot city" aria-hidden="true"></i> City center</span>
+      <span><i class="precision-dot state" aria-hidden="true"></i> Statewide</span>
+    </div>
+  </div>
+
+  <div class="project-atlas-workspace">
+    <div class="project-map-frame">
+      <div
+        id="project-map"
+        class="project-map"
+        role="region"
+        aria-label="Interactive map of 37 engineering project locations"
+        aria-describedby="project-map-instructions"
+      ></div>
+      <p id="project-map-instructions" class="sr-only">Use the arrow keys to pan the map and the plus and minus keys or zoom controls to zoom. Numbered markers open project details.</p>
+      <div class="project-map-loader" data-map-loader role="status">Loading geographic map…</div>
+      <div class="project-map-fallback" data-map-fallback hidden>
+        <span class="eyebrow">Map unavailable</span>
+        <p>The basemap could not be loaded. Every project remains available in the synchronized list.</p>
+      </div>
+      <noscript><div class="project-map-fallback"><p>Enable JavaScript to use the interactive map. Every project is listed alongside it.</p></div></noscript>
+    </div>
+
+    <section class="project-list-panel" aria-labelledby="project-list-heading">
+      <header>
+        <span class="eyebrow">Complete collection</span>
+        <h2 id="project-list-heading">All project experience</h2>
+      </header>
+      <div class="project-list" data-project-list>
+        {projects.map((project, index) => (
+          <article class="project-list-item" data-project-id={project.id}>
+            <div class="project-list-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</div>
+            <div>
+              <p class="project-list-location">{project.locationLabel}</p>
+              <h3><button type="button" data-open-project={project.id}>{project.name}</button></h3>
+              <p class="project-list-description">{project.description}</p>
+              <ul class="project-list-tags" aria-label="Project tags">
+                {project.sectors.map((tag) => <li>{tag}</li>)}
+                {project.services.map((tag) => <li>{tag}</li>)}
+              </ul>
+            </div>
+          </article>
+        ))}
+        <p class="project-list-empty" data-no-results hidden>No projects match those filters. Try a broader search or choose “All projects.”</p>
+      </div>
+    </section>
+  </div>
+
+  <p class="project-credit">Selected project experience completed as part of Thornton Tomasetti project teams. Descriptions reflect the broader engineering scope and do not imply sole authorship.</p>
+
+  <dialog class="project-detail-drawer" data-project-dialog aria-labelledby="project-detail-title">
+    <div class="project-detail-shell">
+      <header class="project-detail-header">
+        <span class="eyebrow">Project scope</span>
+        <button type="button" class="project-detail-close" data-close-project aria-label="Close project details">Close <span aria-hidden="true">×</span></button>
+      </header>
+      <div class="project-detail-content" data-project-detail-content></div>
+    </div>
+  </dialog>
+
+  <script id="project-atlas-data" type="application/json" is:inline set:html={serializedProjects}></script>
+</section>
+
+<script>
+  import type { Map as LeafletMap, Marker } from 'leaflet';
+  import type { Project } from '../data/projects';
+  import {
+    filterProjects,
+    getExpandedMarkerOffsets,
+    renderProjectDetails,
+    resolveSelection,
+  } from '../lib/project-explorer';
+
+  function setupProjectAtlas() {
+    const atlas = document.querySelector<HTMLElement>('[data-project-atlas]');
+    if (!atlas) return;
+
+    const dataElement = atlas.querySelector<HTMLScriptElement>('#project-atlas-data');
+    const mapElement = atlas.querySelector<HTMLElement>('#project-map');
+    const mapLoader = atlas.querySelector<HTMLElement>('[data-map-loader]');
+    const mapFallback = atlas.querySelector<HTMLElement>('[data-map-fallback]');
+    const searchInput = atlas.querySelector<HTMLInputElement>('#project-search');
+    const sectorFilter = atlas.querySelector<HTMLSelectElement>('#project-sector-filter');
+    const serviceFilter = atlas.querySelector<HTMLSelectElement>('#project-service-filter');
+    const clearFilters = atlas.querySelector<HTMLButtonElement>('[data-clear-filters]');
+    const resultCount = atlas.querySelector<HTMLElement>('[data-result-count]');
+    const noResults = atlas.querySelector<HTMLElement>('[data-no-results]');
+    const dialog = atlas.querySelector<HTMLDialogElement>('[data-project-dialog]');
+    const detailContent = atlas.querySelector<HTMLElement>('[data-project-detail-content]');
+    const closeButton = atlas.querySelector<HTMLButtonElement>('[data-close-project]');
+
+    if (!dataElement || !mapElement || !searchInput || !sectorFilter || !serviceFilter || !clearFilters || !resultCount || !noResults || !dialog || !detailContent || !closeButton) return;
+
+    const projects = JSON.parse(dataElement.textContent ?? '[]') as Project[];
+    const cards = Array.from(atlas.querySelectorAll<HTMLElement>('.project-list-item'));
+    const markers = new Map<string, Marker>();
+    const markerOffsets = getExpandedMarkerOffsets(projects);
+    const projectNumbers = new Map(projects.map((project, index) => [project.id, index + 1]));
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let visibleProjects = [...projects];
+    let selectedProjectId: string | null = null;
+    let map: LeafletMap | null = null;
+    let mapPromise: Promise<void> | null = null;
+    let lastFocusedElement: HTMLElement | null = null;
+
+    const setMapFallback = (message?: string) => {
+      mapLoader?.setAttribute('hidden', '');
+      if (!mapFallback) return;
+      if (message) {
+        const fallbackCopy = mapFallback.querySelector('p');
+        if (fallbackCopy) fallbackCopy.textContent = message;
+      }
+      mapFallback.hidden = false;
+    };
+
+    const updateSelection = () => {
+      cards.forEach((card) => {
+        const isSelected = card.dataset.projectId === selectedProjectId;
+        card.classList.toggle('is-selected', isSelected);
+        if (isSelected) card.setAttribute('aria-current', 'true');
+        else card.removeAttribute('aria-current');
+      });
+
+      markers.forEach((marker, projectId) => {
+        const markerElement = marker.getElement();
+        markerElement?.classList.toggle('is-selected', projectId === selectedProjectId);
+        markerElement?.setAttribute('aria-pressed', projectId === selectedProjectId ? 'true' : 'false');
+      });
+    };
+
+    const centerMapOnProject = async (project: Project) => {
+      await ensureMap();
+      if (!map) return;
+      const targetZoom = project.locationPrecision === 'exact' ? 15 : project.locationPrecision === 'state' ? 8 : 13;
+      map.setView([project.latitude, project.longitude], targetZoom, { animate: !prefersReducedMotion });
+    };
+
+    const openProjectDetails = (project: Project, centerMap = false) => {
+      selectedProjectId = project.id;
+      detailContent.innerHTML = renderProjectDetails(project, visibleProjects);
+      updateSelection();
+
+      const selectedCard = cards.find((card) => card.dataset.projectId === project.id);
+      selectedCard?.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+
+      if (centerMap) void centerMapOnProject(project);
+
+      if (!dialog.open) {
+        lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        dialog.showModal();
+        requestAnimationFrame(() => closeButton.focus({ preventScroll: true }));
+      }
+    };
+
+    const syncMarkers = () => {
+      const currentMap = map;
+      if (!currentMap) return;
+      const visibleIds = new Set(visibleProjects.map((project) => project.id));
+
+      markers.forEach((marker, projectId) => {
+        if (visibleIds.has(projectId)) {
+          if (!currentMap.hasLayer(marker)) marker.addTo(currentMap);
+        } else if (currentMap.hasLayer(marker)) {
+          currentMap.removeLayer(marker);
+        }
+      });
+      updateSelection();
+    };
+
+    const initializeMap = async () => {
+      try {
+        const L = await import('leaflet');
+        map = L.map(mapElement, {
+          keyboard: true,
+          scrollWheelZoom: true,
+          touchZoom: true,
+          zoomControl: true,
+          attributionControl: true,
+        });
+
+        const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+        });
+
+        let tileErrors = 0;
+        tileLayer.on('tileload', () => {
+          mapLoader?.setAttribute('hidden', '');
+          if (mapFallback) mapFallback.hidden = true;
+        });
+        tileLayer.on('tileerror', () => {
+          tileErrors += 1;
+          if (tileErrors >= 2) setMapFallback();
+        });
+        tileLayer.addTo(map);
+
+        projects.forEach((project) => {
+          const projectNumber = projectNumbers.get(project.id) ?? 0;
+          const offset = markerOffsets.get(project.id) ?? { x: 0, y: 0 };
+          const icon = L.divIcon({
+            className: `engineering-marker-shell precision-${project.locationPrecision}`,
+            html: `<span class="engineering-marker-face" aria-hidden="true">${String(projectNumber).padStart(2, '0')}</span>`,
+            iconSize: [28, 28],
+            iconAnchor: [14 - offset.x, 14 - offset.y],
+          });
+          const marker = L.marker([project.latitude, project.longitude], {
+            icon,
+            keyboard: true,
+            riseOnHover: true,
+            title: `${project.name} — ${project.locationLabel}`,
+          });
+
+          const tooltipContent = document.createElement('div');
+          const tooltipName = document.createElement('strong');
+          const tooltipLocation = document.createElement('span');
+          tooltipName.textContent = project.name;
+          tooltipLocation.textContent = project.locationLabel;
+          tooltipContent.append(tooltipName, tooltipLocation);
+          marker.bindTooltip(tooltipContent, { direction: 'top', offset: [offset.x * -0.25, -18], opacity: 1 });
+
+          const enhanceMarker = () => {
+            const markerElement = marker.getElement();
+            if (!markerElement) return;
+            markerElement.setAttribute('role', 'button');
+            markerElement.setAttribute('aria-label', `Open ${project.name}, ${project.locationLabel}`);
+            markerElement.setAttribute('aria-pressed', selectedProjectId === project.id ? 'true' : 'false');
+
+            markerElement.addEventListener('focus', () => {
+              markerElement.classList.add('is-hovered');
+              marker.openTooltip();
+            });
+            markerElement.addEventListener('blur', () => {
+              markerElement.classList.remove('is-hovered');
+              marker.closeTooltip();
+            });
+            markerElement.addEventListener('keydown', (event) => {
+              if (event.key !== 'Enter' && event.key !== ' ') return;
+              event.preventDefault();
+              event.stopPropagation();
+              openProjectDetails(project);
+            });
+          };
+
+          marker.on('add', enhanceMarker);
+          marker.on('mouseover', () => marker.getElement()?.classList.add('is-hovered'));
+          marker.on('mouseout', () => marker.getElement()?.classList.remove('is-hovered'));
+          marker.on('click', () => openProjectDetails(project));
+          markers.set(project.id, marker);
+        });
+
+        syncMarkers();
+        const bounds = L.latLngBounds(projects.map((project) => [project.latitude, project.longitude]));
+        map.fitBounds(bounds, { padding: [58, 58], maxZoom: 8, animate: false });
+        map.whenReady(() => mapLoader?.setAttribute('hidden', ''));
+
+        mapElement.querySelector('.leaflet-control-zoom-in')?.setAttribute('aria-label', 'Zoom map in');
+        mapElement.querySelector('.leaflet-control-zoom-out')?.setAttribute('aria-label', 'Zoom map out');
+      } catch {
+        setMapFallback('The interactive map could not be initialized. Every project remains available in the synchronized list.');
+      }
+    };
+
+    function ensureMap() {
+      if (!mapPromise) mapPromise = initializeMap();
+      return mapPromise;
+    }
+
+    const applyFilters = () => {
+      visibleProjects = filterProjects(projects, {
+        query: searchInput.value,
+        sector: sectorFilter.value,
+        service: serviceFilter.value,
+      });
+
+      const visibleIds = new Set(visibleProjects.map((project) => project.id));
+      cards.forEach((card) => {
+        card.hidden = !visibleIds.has(card.dataset.projectId ?? '');
+      });
+
+      const projectLabel = visibleProjects.length === 1 ? 'project' : 'projects';
+      resultCount.textContent = `${visibleProjects.length} ${projectLabel}`;
+      noResults.hidden = visibleProjects.length !== 0;
+      clearFilters.disabled = !searchInput.value && !sectorFilter.value && !serviceFilter.value;
+      syncMarkers();
+
+      if (selectedProjectId && !visibleIds.has(selectedProjectId)) dialog.close();
+    };
+
+    atlas.querySelectorAll<HTMLButtonElement>('[data-open-project]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const project = resolveSelection(projects, button.dataset.openProject ?? null);
+        if (project) openProjectDetails(project, true);
+      });
+    });
+
+    detailContent.addEventListener('click', (event) => {
+      const target = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('[data-project-id]') : null;
+      if (!target) return;
+      const project = resolveSelection(visibleProjects, target.dataset.projectId ?? null);
+      if (project) openProjectDetails(project, true);
+    });
+
+    closeButton.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('close', () => {
+      selectedProjectId = null;
+      updateSelection();
+      if (lastFocusedElement?.isConnected) lastFocusedElement.focus({ preventScroll: true });
+      lastFocusedElement = null;
+    });
+
+    dialog.addEventListener('click', (event) => {
+      if (event.target !== dialog) return;
+      const bounds = dialog.getBoundingClientRect();
+      const outsidePanel = event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom;
+      if (outsidePanel) dialog.close();
+    });
+
+    searchInput.addEventListener('input', applyFilters);
+    sectorFilter.addEventListener('change', applyFilters);
+    serviceFilter.addEventListener('change', applyFilters);
+    clearFilters.addEventListener('click', () => {
+      searchInput.value = '';
+      sectorFilter.value = '';
+      serviceFilter.value = '';
+      applyFilters();
+      searchInput.focus();
+    });
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        void ensureMap();
+      }, { rootMargin: '320px' });
+      observer.observe(mapElement);
+    } else {
+      void ensureMap();
+    }
+  }
+
+  setupProjectAtlas();
+</script>

@@ -1,18 +1,22 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectAtlas from '../../components/ProjectAtlas.astro';
 ---
 
-<BaseLayout title="Projects" description="Interactive essays, engineering case studies, and tools by Austin Woyshnar — a live log of ongoing work.">
+<BaseLayout title="Projects" description="Selected construction engineering experience, interactive essays, case studies, and tools by Austin Woyshnar.">
   <section class="page-intro compact">
     <span class="eyebrow">Projects</span>
-    <h1>A live log of work in progress.</h1>
-    <p>Interactive explanations, engineering case studies, and tools. Entries are added as the work happens; client and project identities stay confidential, the engineering stays specific.</p>
+    <h1>Engineering experience, grounded in place.</h1>
+    <p>Construction engineering experience spanning temporary works, shoring and demolition sequencing, erection stability, rigging and crane operations, equipment loads imposed on existing structures, structural field investigations, and contractor-focused design support. Project work includes higher education, aviation, data centers, industrial facilities, healthcare and life-science buildings, commercial properties, and historic structures.</p>
   </section>
 
+  <ProjectAtlas />
+
   <!-- ============ SECTION 1: SELECTED WORK ============ -->
-  <section class="project-grid">
+  <section class="project-grid project-independent" aria-labelledby="independent-projects-heading">
     <div class="log-section-head">
       <span class="eyebrow">Selected Work</span>
+      <h2 id="independent-projects-heading">Research beyond the project site.</h2>
     </div>
     <article class="project-card project-featured">
       <a class="project-visual" href="/writing/the-watershed/"><img src="/writing/the-watershed/assets/scranton-coal-breaker.jpg" alt="Historic coal breaker in Scranton, Pennsylvania" /></a>
