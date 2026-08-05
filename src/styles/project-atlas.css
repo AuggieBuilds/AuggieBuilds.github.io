@@ -4,6 +4,13 @@
   padding: 0 0 130px;
 }
 
+.projects-intro { padding: 86px 0 62px; }
+.projects-intro h1 { max-width: 1100px; font-size: clamp(56px, 7.1vw, 96px); }
+.projects-intro > p { max-width: 860px; margin-top: 30px; font-size: 21px; }
+.projects-intro-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 17px 22px; }
+.projects-intro-actions .button { gap: 12px; }
+.projects-intro-actions > span { color: var(--muted); font: 400 10px var(--mono); letter-spacing: .045em; text-transform: uppercase; }
+
 .project-atlas-heading {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr);
@@ -12,6 +19,8 @@
   padding: 0 0 48px;
   border-bottom: 1px solid var(--line);
 }
+
+#project-atlas-heading { scroll-margin-top: 92px; }
 
 .project-atlas-heading h2 {
   max-width: 760px;
@@ -337,6 +346,10 @@
 }
 
 @media (max-width: 650px) {
+  .projects-intro { padding: 64px 0 48px; }
+  .projects-intro h1 { font-size: 15vw; }
+  .projects-intro > p { margin-top: 25px; font-size: 18px; }
+  .projects-intro-actions { align-items: flex-start; flex-direction: column; }
   .project-atlas { width: calc(100% - 28px); padding-bottom: 90px; }
   .project-atlas-heading { padding-bottom: 36px; }
   .project-atlas-heading h2 { font-size: 13vw; }
