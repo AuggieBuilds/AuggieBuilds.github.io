@@ -9,9 +9,9 @@ import {
   resolveSelection,
 } from '../src/lib/project-explorer.ts';
 
-test('the project dataset contains 37 complete, unique, publishable records', () => {
-  assert.equal(projects.length, 37);
-  assert.equal(new Set(projects.map((project) => project.id)).size, 37);
+test('the project dataset contains 33 complete, unique, publishable records', () => {
+  assert.equal(projects.length, 33);
+  assert.equal(new Set(projects.map((project) => project.id)).size, 33);
 
   projects.forEach((project) => {
     assert.ok(project.id);
@@ -28,8 +28,7 @@ test('the project dataset contains 37 complete, unique, publishable records', ()
     assert.doesNotMatch(project.description, /internal project|project number|job number|client logo/i);
   });
 
-  assert.equal(projects.filter((project) => project.locationPrecision === 'state').length, 1);
-  assert.equal(projects.find((project) => project.locationPrecision === 'state')?.id, 'massachusetts-crime-laboratory');
+  assert.equal(projects.filter((project) => project.locationPrecision === 'state').length, 0);
 });
 
 test('search and sector/service filters combine against the same collection', () => {
@@ -50,7 +49,7 @@ test('search and sector/service filters combine against the same collection', ()
 });
 
 test('project selection and adjacent navigation resolve deterministically', () => {
-  assert.equal(resolveSelection(projects, 'volpe-c3')?.name, 'Volpe C3');
+  assert.equal(resolveSelection(projects, 'volpe-c3')?.name, 'Volpe C3 Building');
   assert.equal(resolveSelection(projects, 'missing-project'), null);
   assert.equal(getAdjacentProjectId(projects, projects[0].id, 'previous'), null);
   assert.equal(getAdjacentProjectId(projects, projects[0].id, 'next'), projects[1].id);
@@ -67,7 +66,7 @@ test('detail rendering includes the complete scope, tags, location precision, an
   assert.match(html, /temporary loading-platform/);
   assert.match(html, /Data centers/);
   assert.match(html, /Rigging and crane operations/);
-  assert.match(html, /Marker shown at city center/);
+  assert.match(html, /Verified project location/);
   assert.match(html, /data-detail-previous/);
   assert.match(html, /data-detail-next/);
 
@@ -78,11 +77,11 @@ test('detail rendering includes the complete scope, tags, location precision, an
 
 test('co-located projects receive unique deterministic screen offsets', () => {
   const offsets = getExpandedMarkerOffsets(projects);
-  const cambridgeProjects = projects.filter((project) => project.latitude === 42.3656347 && project.longitude === -71.1040018);
-  const cambridgeOffsets = cambridgeProjects.map((project) => offsets.get(project.id));
-  const serializedOffsets = cambridgeOffsets.map((offset) => `${offset?.x},${offset?.y}`);
+  const airportProjects = projects.filter((project) => project.latitude === 42.3617162 && project.longitude === -71.0203912);
+  const airportOffsets = airportProjects.map((project) => offsets.get(project.id));
+  const serializedOffsets = airportOffsets.map((offset) => `${offset?.x},${offset?.y}`);
 
-  assert.ok(cambridgeProjects.length > 1);
-  assert.equal(new Set(serializedOffsets).size, cambridgeProjects.length);
+  assert.ok(airportProjects.length > 1);
+  assert.equal(new Set(serializedOffsets).size, airportProjects.length);
   assert.deepEqual(getExpandedMarkerOffsets(projects), offsets);
 });

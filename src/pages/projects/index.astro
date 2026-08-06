@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProjectAtlas from '../../components/ProjectAtlas.astro';
+import projects from '../../data/projects';
 ---
 
 <BaseLayout title="Projects" description="Selected construction engineering experience, interactive essays, case studies, and tools by Austin Woyshnar.">
@@ -9,7 +10,7 @@ import ProjectAtlas from '../../components/ProjectAtlas.astro';
     <h1>Engineering experience, grounded in place.</h1>
     <div class="projects-intro-actions">
       <a class="button" href="#project-atlas-heading">Explore the project map <span aria-hidden="true">↓</span></a>
-      <span>37 projects · Massachusetts, Maine, and Virginia</span>
+      <span>{projects.length} projects · Massachusetts, Maine, and Virginia</span>
     </div>
     <p>Construction engineering experience spanning temporary works, shoring and demolition sequencing, erection stability, rigging and crane operations, equipment loads imposed on existing structures, structural field investigations, and contractor-focused design support. Project work includes higher education, aviation, data centers, industrial facilities, healthcare and life-science buildings, commercial properties, and historic structures.</p>
   </section>

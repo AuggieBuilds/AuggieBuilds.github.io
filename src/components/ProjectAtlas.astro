@@ -55,7 +55,7 @@ const serializedProjects = JSON.stringify(projects).replace(/</g, '\\u003c');
         id="project-map"
         class="project-map"
         role="region"
-        aria-label="Interactive map of 37 engineering project locations"
+        aria-label={`Interactive map of ${projects.length} engineering project locations`}
         aria-describedby="project-map-instructions"
       ></div>
       <p id="project-map-instructions" class="sr-only">Use the arrow keys to pan the map and the plus and minus keys or zoom controls to zoom. Numbered markers open project details.</p>
