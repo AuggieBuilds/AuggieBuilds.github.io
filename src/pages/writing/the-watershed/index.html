@@ -62,13 +62,50 @@
 </div>
 <figure aria-labelledby="tributary-title" class="module tributary-module">
 <div class="module-head"><h3 class="figure-title" id="tributary-title">Three tributaries, one regional reservoir</h3><p>Outside money matters most when a temporary flow becomes durable, independent capability.</p></div>
-<svg aria-label="Export revenue, public distribution, and private investment flowing into a regional reservoir and leaving durable capabilities" class="tributary-svg" role="img" viewbox="0 0 1100 610">
-<path class="trib t1" d="M90 95 C230 105 275 190 400 255"></path><path class="trib t2" d="M550 65 C545 150 525 205 500 260"></path><path class="trib t3" d="M1010 95 C850 105 805 190 630 255"></path>
-<path class="mainriver" d="M470 250 C480 330 495 360 545 410 C600 465 640 505 650 585"></path>
-<path class="branch b1" d="M540 410 C430 440 355 485 300 565"></path><path class="branch b2" d="M570 430 C515 485 500 535 500 585"></path><path class="branch b3" d="M595 440 C690 470 770 510 825 575"></path>
-<g class="trib-label"><text x="70" y="70">Export revenue</text><text x="450" y="40">Public distribution</text><text x="865" y="70">External investment</text></g>
-<g class="reservoir"><ellipse cx="550" cy="315" rx="210" ry="95"></ellipse><text x="550" y="300">REGIONAL RESERVOIR</text><text x="550" y="330">wages · taxes · procurement · ownership</text></g>
-<g class="out-label"><text x="220" y="600">Skills + suppliers</text><text x="445" y="600">Infrastructure</text><text x="755" y="600">Independent institutions</text></g>
+<svg aria-labelledby="tributary-diagram-title tributary-diagram-desc" class="tributary-svg tributary-sankey" role="img" viewBox="0 0 390 650">
+<title id="tributary-diagram-title">Three outside-money streams feed a regional reservoir</title>
+<desc id="tributary-diagram-desc">Export revenue, public distribution, and private investment merge into a regional reservoir. The combined flow supports immediate activity, leaves through leakage, or becomes durable capacity. Durable capacity branches into transferable skills, local suppliers, shared infrastructure, and independent institutions.</desc>
+<g class="tributary-source-labels">
+<text class="flow-name" x="55" y="25" text-anchor="middle"><tspan x="55">Export</tspan><tspan x="55" dy="14">revenue</tspan></text>
+<text class="flow-name" x="195" y="25" text-anchor="middle"><tspan x="195">Public</tspan><tspan x="195" dy="14">distribution</tspan></text>
+<text class="flow-name" x="335" y="25" text-anchor="middle"><tspan x="335">Private</tspan><tspan x="335" dy="14">investment</tspan></text>
+</g>
+<g aria-hidden="true" class="tributary-inflows">
+<path class="sankey-ribbon export-flow" d="M37,70 C37,132 147,138 147,205 L183,205 C183,138 73,132 73,70 Z"></path>
+<path class="sankey-ribbon public-flow" d="M180,70 C180,126 183,148 183,205 L213,205 C213,148 210,126 210,70 Z"></path>
+<path class="sankey-ribbon investment-flow" d="M320,70 C320,132 243,146 243,205 L213,205 C213,146 350,132 350,70 Z"></path>
+</g>
+<g class="regional-pool">
+<path d="M130,205 L260,205 L243,272 Q195,306 147,272 Z"></path>
+<line x1="130" y1="205" x2="260" y2="205"></line>
+<text class="pool-name" x="195" y="234" text-anchor="middle">Regional reservoir</text>
+<text class="pool-note" x="195" y="252" text-anchor="middle">wages · taxes · buying</text>
+<text class="pool-note" x="195" y="267" text-anchor="middle">ownership · local finance</text>
+</g>
+<g aria-hidden="true" class="tributary-outflows">
+<path class="sankey-ribbon activity-flow" d="M147,271 C147,326 62,340 62,413 L104,413 C104,355 189,340 189,286 Z"></path>
+<path class="sankey-ribbon durable-flow" d="M189,286 C189,340 180,361 180,443 L210,443 C210,361 219,340 219,286 Z"></path>
+<path class="sankey-ribbon leakage-flow" d="M219,286 C219,340 286,350 286,413 L310,413 C310,340 243,326 243,271 Z"></path>
+</g>
+<g class="primary-outcome-labels">
+<text class="flow-name" x="83" y="433" text-anchor="middle"><tspan x="83">Immediate</tspan><tspan x="83" dy="14">local activity</tspan></text>
+<text class="flow-name" x="298" y="433" text-anchor="middle"><tspan x="298">Leaves the</tspan><tspan x="298" dy="14">region</tspan></text>
+<rect class="flow-label-plate" x="137" y="389" width="116" height="25" rx="3"></rect>
+<text class="flow-name durable-label" x="195" y="407" text-anchor="middle">Durable capacity</text>
+</g>
+<g aria-hidden="true" class="capacity-branches">
+<path class="sankey-ribbon" d="M180,443 C180,492 66,500 66,548 L74,548 C74,506 188,499 188,443 Z"></path>
+<path class="sankey-ribbon" d="M188,443 C188,500 151,505 151,548 L159,548 C159,505 195,500 195,443 Z"></path>
+<path class="sankey-ribbon" d="M195,443 C195,500 231,505 231,548 L239,548 C239,505 203,500 203,443 Z"></path>
+<path class="sankey-ribbon" d="M203,443 C203,499 316,506 316,548 L324,548 C324,500 210,492 210,443 Z"></path>
+</g>
+<g class="capacity-labels">
+<text class="flow-name" x="70" y="572" text-anchor="middle"><tspan x="70">Transferable</tspan><tspan x="70" dy="14">skills</tspan></text>
+<text class="flow-name" x="155" y="572" text-anchor="middle"><tspan x="155">Local</tspan><tspan x="155" dy="14">suppliers</tspan></text>
+<text class="flow-name" x="235" y="572" text-anchor="middle"><tspan x="235">Shared</tspan><tspan x="235" dy="14">infrastructure</tspan></text>
+<text class="flow-name" x="320" y="572" text-anchor="middle"><tspan x="320">Independent</tspan><tspan x="320" dy="14">institutions</tspan></text>
+</g>
+<text class="ribbon-key" x="195" y="629" text-anchor="middle">Ribbon widths are illustrative, not measured</text>
 </svg>
 <div class="test-grid"><article><span>Temporary burst</span><p>Construction activity ends, imported equipment leaves, and no independent supplier or training system remains.</p></article><article><span>Recurring engine</span><p>The facility sells outward, trains transferable skills, supports local suppliers, and leaves assets usable by other industries.</p></article></div>
 <div class="module-insight"><div><strong>What remains after the original program, investor, or employer leaves?</strong><p>That question separates a large announcement from a durable regional engine.</p></div></div>
