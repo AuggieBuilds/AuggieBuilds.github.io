@@ -1,0 +1,20 @@
+.glasgow-sankey {
+  max-width: 620px;
+  margin: 2.5rem auto 3rem;
+  padding: 1.4rem 1.3rem;
+  border-top: 1px solid var(--line, #d7d7cc);
+  border-bottom: 1px solid var(--line, #d7d7cc);
+}
+.glasgow-sankey header { margin-bottom: 1rem; }
+.glasgow-sankey header span { font: 500 .85rem/1.5 var(--sans, sans-serif); color: var(--muted, #62685f); }
+.glasgow-sankey h3 { font: 500 1.2rem/1.4 var(--sans, sans-serif); margin: .4rem 0 0; }
+.glasgow-sankey svg { display: block; width: 100%; max-width: 420px; height: auto; margin: 0 auto; overflow: visible; }
+.glasgow-sankey svg text { font: 16px var(--sans, sans-serif); fill: var(--ink, #18221b); }
+.glasgow-sankey .historical-pool { fill: var(--paper, #f8f7f2); stroke: var(--ink, #18221b); stroke-width: 1; }
+.glasgow-sankey figcaption { margin-top: .8rem; color: var(--muted, #62685f); font: 400 .85rem/1.5 var(--sans, sans-serif); }
+#section-5 .prose h3 { font-size: 1.25rem; font-weight: 500; line-height: 1.4; margin: 2.4rem 0 1rem; }
+.city-comparison .scorecards { margin-top: 1.5rem; }
+@media (max-width: 600px) {
+  .glasgow-sankey { padding: 1.1rem 0; margin: 2rem 0; }
+  .glasgow-sankey svg { max-height: 55svh; }
+}
