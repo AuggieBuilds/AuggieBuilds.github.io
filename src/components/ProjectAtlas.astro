@@ -4,15 +4,50 @@ import '../styles/project-atlas.css';
 import projects, { sectorFilters, serviceFilters } from '../data/projects';
 
 const serializedProjects = JSON.stringify(projects).replace(/</g, '\\u003c');
+const highlights = [
+  { title: 'COLTS Transit Facility', label: 'Contractor-side construction · Scranton, PA', summary: 'Trade buyouts in preconstruction, followed by on-site coordination with field personnel, designers, and subcontractors.', projectIds: ['colts-transit-facility'] },
+  { title: '836 Taylor Avenue', label: 'Personal renovation · Scranton, PA', summary: 'A hands-on renovation of a house in Scranton’s Hill Section.', projectIds: ['836-taylor-avenue'] },
+  { title: 'Harvard Eliot House', label: 'Temporary works · Cambridge, MA', summary: 'Shoring and demolition sequencing across existing foundations, masonry walls, elevators, and floor openings.', projectIds: ['harvard-eliot-house'] },
+  { title: 'Logan CHP Boiler No. 3', label: 'Construction engineering · East Boston, MA', summary: 'Equipment-loading checks, shoring review, temporary platform work, and structural support for a boiler replacement.', projectIds: ['massport-chp-boiler-3'] },
+  { title: 'Logan Terminal E', label: 'Aviation infrastructure · East Boston, MA', summary: 'Crane and construction-equipment loading across existing utilities, roadways, garage structures, and the departure deck.', projectIds: ['logan-terminal-e-garage-roadways'] },
+  { title: 'Data center work', label: 'Temporary loading and rigging · Virginia', summary: 'Structural checks for equipment moves, rigging, temporary platforms, staging pads, and subsurface utilities.', projectIds: ['belmont-b4-data-center', 'iad-12-13-data-centers'] },
+  { title: 'Roux Institute', label: 'Construction sequencing · Portland, ME', summary: 'Sequence modeling, shoring, erection stability, equipment loading, and coordination for a complex new academic building.', projectIds: ['roux-institute-academic-building'] },
+];
 ---
 
 <section class="project-atlas" data-project-atlas aria-labelledby="project-atlas-heading">
+  <section class="project-highlights" aria-labelledby="career-highlights">
+    <div class="project-highlights-heading">
+      <span class="eyebrow">Featured projects</span>
+      <h2 id="career-highlights">Career highlights.</h2>
+      <p>Engineering, construction coordination, and a renovation I took on myself.</p>
+    </div>
+    <div class="project-highlights-grid">
+      {highlights.map((highlight, index) => (
+        <article class="project-highlight">
+          <span class="project-highlight-number">{String(index + 1).padStart(2, '0')}</span>
+          <div>
+            <span class="eyebrow">{highlight.label}</span>
+            <h3>{highlight.title}</h3>
+            <p>{highlight.summary}</p>
+            <div class="project-highlight-actions">
+              {highlight.projectIds.map((id) => {
+                const project = projects.find((item) => item.id === id);
+                return project && <button type="button" data-open-project={id} aria-label={`View ${project.name}`}>{highlight.projectIds.length === 1 ? 'View project' : project.name} <span aria-hidden="true">↗</span></button>;
+              })}
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
   <header class="project-atlas-heading">
     <div>
       <span class="eyebrow">Project atlas</span>
-      <h2 id="project-atlas-heading">Engineering work, mapped by place.</h2>
+      <h2 id="project-atlas-heading">All selected projects.</h2>
     </div>
-    <p>Explore the geographic range of selected construction engineering experience, then open any project for its complete scope.</p>
+    <p>Explore the full collection by location, sector, or project focus. Open any entry for more detail.</p>
   </header>
 
   <div class="project-atlas-controls" aria-label="Search and filter projects">
@@ -30,9 +65,9 @@ const serializedProjects = JSON.stringify(projects).replace(/</g, '\\u003c');
     </label>
 
     <label class="project-filter" for="project-service-filter">
-      <span>Engineering service</span>
+      <span>Project focus</span>
       <select id="project-service-filter">
-        <option value="">All services</option>
+        <option value="">All focus areas</option>
         {serviceFilters.map((service) => <option value={service}>{service}</option>)}
       </select>
     </label>
@@ -55,7 +90,7 @@ const serializedProjects = JSON.stringify(projects).replace(/</g, '\\u003c');
         id="project-map"
         class="project-map"
         role="region"
-        aria-label={`Interactive map of ${projects.length} engineering project locations`}
+        aria-label={`Interactive map of ${projects.length} project locations`}
         aria-describedby="project-map-instructions"
       ></div>
       <p id="project-map-instructions" class="sr-only">Use the arrow keys to pan the map and the plus and minus keys or zoom controls to zoom. Numbered markers open project details.</p>
@@ -69,8 +104,8 @@ const serializedProjects = JSON.stringify(projects).replace(/</g, '\\u003c');
 
     <section class="project-list-panel" aria-labelledby="project-list-heading">
       <header>
-        <span class="eyebrow">Complete collection</span>
-        <h2 id="project-list-heading">All project experience</h2>
+        <span class="eyebrow">Project experience</span>
+        <h2 id="project-list-heading">Selected projects</h2>
       </header>
       <div class="project-list" data-project-list>
         {projects.map((project, index) => (
@@ -78,6 +113,7 @@ const serializedProjects = JSON.stringify(projects).replace(/</g, '\\u003c');
             <div class="project-list-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</div>
             <div>
               <p class="project-list-location">{project.locationLabel}</p>
+              {project.context && <p class="project-list-context">{project.context}</p>}
               <h3><button type="button" data-open-project={project.id}>{project.name}</button></h3>
               <p class="project-list-description">{project.description}</p>
               <ul class="project-list-tags" aria-label="Project tags">
@@ -92,12 +128,12 @@ const serializedProjects = JSON.stringify(projects).replace(/</g, '\\u003c');
     </section>
   </div>
 
-  <p class="project-credit">Selected project experience completed as part of Thornton Tomasetti project teams. Descriptions reflect the broader engineering scope and do not imply sole authorship.</p>
+  <p class="project-credit">Thornton Tomasetti entries summarize engineering team work and do not imply sole authorship. COLTS reflects contractor-side work; Taylor Avenue is a personal project.</p>
 
   <dialog class="project-detail-drawer" data-project-dialog aria-labelledby="project-detail-title">
     <div class="project-detail-shell">
       <header class="project-detail-header">
-        <span class="eyebrow">Project scope</span>
+        <span class="eyebrow">Project experience</span>
         <button type="button" class="project-detail-close" data-close-project aria-label="Close project details">Close <span aria-hidden="true">×</span></button>
       </header>
       <div class="project-detail-content" data-project-detail-content></div>

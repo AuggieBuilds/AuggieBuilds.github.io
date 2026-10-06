@@ -4,15 +4,15 @@ import ProjectAtlas from '../../components/ProjectAtlas.astro';
 import projects from '../../data/projects';
 ---
 
-<BaseLayout title="Projects" description="Selected construction engineering experience, interactive essays, case studies, and tools by Austin Woyshnar.">
+<BaseLayout title="Projects" description="Career highlights in structural engineering, construction, and residential renovation by Austin Woyshnar.">
   <section class="page-intro compact projects-intro">
     <span class="eyebrow">Projects</span>
-    <h1>Engineering experience, grounded in place.</h1>
+    <h1>Projects that shaped my work.</h1>
     <div class="projects-intro-actions">
-      <a class="button" href="#project-atlas-heading">Explore the project map <span aria-hidden="true">↓</span></a>
-      <span>{projects.length} projects · Massachusetts, Maine, and Virginia</span>
+      <a class="button" href="#career-highlights">View career highlights <span aria-hidden="true">↓</span></a>
+      <span>{projects.length} projects · Pennsylvania, Massachusetts, Maine, and Virginia</span>
     </div>
-    <p>Construction engineering experience spanning temporary works, shoring and demolition sequencing, erection stability, rigging and crane operations, equipment loads imposed on existing structures, structural field investigations, and contractor-focused design support. Project work includes higher education, aviation, data centers, industrial facilities, healthcare and life-science buildings, commercial properties, and historic structures.</p>
+    <p>My experience spans structural engineering, contractor-side preconstruction and on-site coordination, and a personal residential renovation. At Thornton Tomasetti, I work on temporary conditions that make construction possible, from shoring and demolition sequencing to equipment loading and erection stability. The selected projects below reflect that range of work.</p>
   </section>
 
   <ProjectAtlas />
@@ -21,11 +21,11 @@ import projects from '../../data/projects';
   <section class="project-grid project-independent" aria-labelledby="independent-projects-heading">
     <div class="log-section-head">
       <span class="eyebrow">Selected Work</span>
-      <h2 id="independent-projects-heading">Research beyond the project site.</h2>
+      <h2 id="independent-projects-heading">Independent research and writing.</h2>
     </div>
     <article class="project-card project-featured">
       <a class="project-visual" href="/writing/the-watershed/"><img src="/writing/the-watershed/assets/scranton-coal-breaker.jpg" alt="Historic coal breaker in Scranton, Pennsylvania" /></a>
-      <div><span class="eyebrow">Visual essay · 2026</span><h2><a href="/writing/the-watershed/">The Watershed</a></h2><p>A research-rich, interactive argument about capital flows, regional capability, and industrial succession.</p><ul class="topic-list"><li>Writing</li><li>Data</li><li>Interaction</li></ul><a class="text-link" href="/writing/the-watershed/">Open project ↗</a></div>
+      <div><span class="eyebrow">Visual essay · 2026</span><h2><a href="/writing/the-watershed/">The Watershed</a></h2><p>I researched, wrote, and built this interactive essay to examine how cities turn temporary capital inflows into lasting local capacity.</p><ul class="topic-list"><li>Writing</li><li>Data</li><li>Interaction</li></ul><a class="text-link" href="/writing/the-watershed/">Open project ↗</a></div>
     </article>
   </section>
 
@@ -35,29 +35,16 @@ import projects from '../../data/projects';
   <section class="project-grid">
     <div class="log-section-head">
       <span class="eyebrow">Engineering Case Studies</span>
-      <p class="log-section-note">A dated log of construction engineering work. Generic on client and location. Specific on method.</p>
+      <p class="log-section-note">Selected technical problems from my construction engineering work, with client details kept general.</p>
     </div>
 
     <article class="log-entry">
       <span class="eyebrow">Logged · July 2026</span>
       <h3>Data Center Grating — Equipment Load Analysis</h3>
-      <p>Bar grating capacity analysis for scissor- and boom-lift equipment loads during data center fit-out. Governed by concentrated point-load and wheel-load checks against manufacturer grating capacity tables. The controlling constraint was lift loads exceeding uniform-load ratings; resolved by defining allowable equipment travel paths across the deck.</p>
+      <p>Analyzed bar grating for scissor- and boom-lift loads during a data center fit-out. Compared wheel and point loads with manufacturer capacity tables, then defined allowable equipment travel paths where uniform-load ratings did not capture the controlling condition.</p>
       <ul class="topic-list"><li>Equipment Loads</li><li>Temporary Works</li></ul>
     </article>
 
-    <article class="log-entry log-draft">
-      <span class="eyebrow">Draft — replace this entry</span>
-      <h3>Case Study Title Goes Here</h3>
-      <p>Draft — replace this text. Describe the engineering problem in one sentence, the governing standards or method in one sentence, and how the key constraint was resolved in one or two sentences. Keep the client and location generic.</p>
-      <ul class="topic-list"><li>Tag One</li><li>Tag Two</li></ul>
-    </article>
-
-    <article class="log-entry log-draft">
-      <span class="eyebrow">Draft — replace this entry</span>
-      <h3>Case Study Title Goes Here</h3>
-      <p>Draft — replace this text. Describe the engineering problem in one sentence, the governing standards or method in one sentence, and how the key constraint was resolved in one or two sentences. Keep the client and location generic.</p>
-      <ul class="topic-list"><li>Tag One</li><li>Tag Two</li></ul>
-    </article>
   </section>
 
   <!-- ============ SECTION 3: TOOLS ============
@@ -65,7 +52,7 @@ import projects from '../../data/projects';
   <section class="project-grid">
     <div class="log-section-head">
       <span class="eyebrow">Tools</span>
-      <p class="log-section-note">Tools I build for my own analysis, shown here as a display shelf. Engineering tools will be added over time.</p>
+      <p class="log-section-note">Models and tools I use to work through investment and engineering questions.</p>
     </div>
 
     <article class="project-card tool-card">
@@ -73,7 +60,7 @@ import projects from '../../data/projects';
       <div>
         <span class="eyebrow">Personal tool · In use</span>
         <h3>Real Estate Analysis Tools</h3>
-        <p>A working set of models for evaluating small residential and commercial acquisitions — purchase, rehab, rental, and refinance assumptions in one place.</p>
+        <p>I built these models to compare purchase, renovation, rental, and refinance assumptions for small residential and commercial properties.</p>
         <ul class="topic-list"><li>Real Estate</li><li>Analysis</li></ul>
       </div>
     </article>

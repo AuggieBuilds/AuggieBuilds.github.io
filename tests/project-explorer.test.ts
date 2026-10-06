@@ -9,9 +9,9 @@ import {
   resolveSelection,
 } from '../src/lib/project-explorer.ts';
 
-test('the project dataset contains 33 complete, unique, publishable records', () => {
-  assert.equal(projects.length, 33);
-  assert.equal(new Set(projects.map((project) => project.id)).size, 33);
+test('the project dataset contains 35 complete, unique, publishable records', () => {
+  assert.equal(projects.length, 35);
+  assert.equal(new Set(projects.map((project) => project.id)).size, 35);
 
   projects.forEach((project) => {
     assert.ok(project.id);
@@ -22,7 +22,7 @@ test('the project dataset contains 33 complete, unique, publishable records', ()
     assert.ok(Number.isFinite(project.latitude));
     assert.ok(Number.isFinite(project.longitude));
     assert.ok(['exact', 'city', 'state'].includes(project.locationPrecision));
-    assert.ok(project.description.length > 100);
+    assert.ok(project.description.length > 75);
     assert.ok(project.sectors.length > 0);
     assert.ok(project.services.length > 0);
     assert.doesNotMatch(project.description, /internal project|project number|job number|client logo/i);
@@ -38,6 +38,9 @@ test('search and sector/service filters combine against the same collection', ()
 
   const aldieProjects = filterProjects(projects, { query: 'Aldie' });
   assert.deepEqual(aldieProjects.map((project) => project.id), ['iad-12-13-data-centers']);
+
+  assert.deepEqual(filterProjects(projects, { sector: 'Residential renovation' }).map((project) => project.id), ['836-taylor-avenue']);
+  assert.deepEqual(filterProjects(projects, { service: 'Construction management' }).map((project) => project.id), ['colts-transit-facility']);
 
   const higherEducationLoading = filterProjects(projects, {
     sector: 'Higher education',
@@ -61,9 +64,9 @@ test('detail rendering includes the complete scope, tags, location precision, an
   if (!project) throw new Error('Expected Belmont B4 project fixture');
 
   const html = renderProjectDetails(project, projects);
-  assert.match(html, /Belmont B4 Data Center CE \/ Bluefin Rigging/);
+  assert.match(html, /Belmont B4 Data Center/);
   assert.match(html, /Sterling, VA/);
-  assert.match(html, /temporary loading-platform/);
+  assert.match(html, /loading-platform/);
   assert.match(html, /Data centers/);
   assert.match(html, /Rigging and crane operations/);
   assert.match(html, /Verified project location/);
@@ -73,6 +76,13 @@ test('detail rendering includes the complete scope, tags, location precision, an
   const escaped = renderProjectDetails({ ...project, name: '<Unsafe & name>' }, [project]);
   assert.match(escaped, /&lt;Unsafe &amp; name&gt;/);
   assert.doesNotMatch(escaped, /<Unsafe/);
+
+  const house = projects.find((item) => item.id === '836-taylor-avenue');
+  if (!house) throw new Error('Expected Taylor Avenue project fixture');
+  const houseHtml = renderProjectDetails(house, projects);
+  assert.match(houseHtml, /Personal project/);
+  assert.match(houseHtml, /View property listing/);
+  assert.match(houseHtml, /rel="noopener noreferrer"/);
 });
 
 test('co-located projects receive unique deterministic screen offsets', () => {

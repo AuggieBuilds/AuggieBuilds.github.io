@@ -18,6 +18,7 @@ export function filterProjects(projects: Project[], filters: ProjectFilters = {}
       project.state,
       project.locationLabel,
       project.description,
+      project.context ?? '',
       ...project.sectors,
       ...project.services,
     ].join(' '));
@@ -78,10 +79,12 @@ export function renderProjectDetails(project: Project, visibleProjects: Project[
     <p class="project-detail-location">${escapeHtml(project.locationLabel)}</p>
     <h2 id="project-detail-title">${escapeHtml(project.name)}</h2>
     <p class="project-detail-precision">${escapeHtml(precisionLabel)}</p>
+    ${project.context ? `<p class="project-detail-context">${escapeHtml(project.context)}</p>` : ''}
     <p class="project-detail-description">${escapeHtml(project.description)}</p>
+    ${project.externalUrl ? `<p class="project-detail-source"><a href="${escapeHtml(project.externalUrl)}" target="_blank" rel="noopener noreferrer">View property listing <span aria-hidden="true">↗</span></a></p>` : ''}
     <div class="project-detail-tags">
       ${renderTags('Sector', project.sectors)}
-      ${renderTags('Engineering services', project.services)}
+      ${renderTags('Project focus', project.services)}
     </div>
     <div class="project-detail-navigation" aria-label="Project navigation">
       <button type="button" data-detail-previous ${previousId ? `data-project-id="${escapeHtml(previousId)}"` : 'disabled'}>
